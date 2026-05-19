@@ -1,11 +1,7 @@
 /**
- * useEventSource — Server-Sent Events hook replacing useWebSocket.
- *
- * Vercel serverless functions don't support WebSocket upgrades, so we
- * use SSE instead. The browser's native EventSource reconnects
- * automatically; we layer exponential backoff on top for reliability.
- *
- * The backend publishes events via Redis pub/sub → /api/v1/stream/{tenant_id}.
+ * useEventSource — SSE hook.
+ * Skips connection when no real backend is configured (VITE_API_URL not set)
+ * to avoid console errors from EventSource hitting an HTML 404 page.
  */
 
 import { useEffect, useRef, useCallback } from 'react'
@@ -15,6 +11,7 @@ import toast from 'react-hot-toast'
 
 const BASE_DELAY = 1_000
 const MAX_DELAY  = 30_000
+const HAS_REAL_BACKEND = Boolean(import.meta.env.VITE_API_URL)
 
 export function useEventSource() {
   const { user, accessToken } = useAppSelector(s => s.auth)
@@ -45,9 +42,7 @@ export function useEventSource() {
     const message = toastMap[event]
     if (message) {
       const urgent = event.includes('sla') || event.includes('churn') || event === 'deal.lost'
-      urgent
-        ? toast.error(message, { duration: 6000 })
-        : toast.success(message, { duration: 3000 })
+      urgent ? toast.error(message, { duration: 6000 }) : toast.success(message, { duration: 3000 })
     }
 
     const invalidationMap: Record<string, string[]> = {
@@ -66,27 +61,21 @@ export function useEventSource() {
   }, [invalidate])
 
   useEffect(() => {
+    // Don't attempt SSE without a real backend — EventSource can't add custom
+    // auth headers, and hitting an HTML 404 page produces noisy console errors.
+    if (!HAS_REAL_BACKEND) return
     if (!user || !accessToken) return
+
     activeRef.current = true
 
     const connect = () => {
       if (!activeRef.current) return
-
-      // Pass token as query param (EventSource doesn't support custom headers)
       const url = `/api/v1/stream/${user.tenant_id}?token=${accessToken}`
       const es = new EventSource(url)
       esRef.current = es
 
-      es.onopen = () => {
-        delayRef.current = BASE_DELAY
-      }
-
-      es.onmessage = ({ data }) => {
-        if (data && data !== '{"event":"connected"}') {
-          handleEvent(data)
-        }
-      }
-
+      es.onopen = () => { delayRef.current = BASE_DELAY }
+      es.onmessage = ({ data }) => { if (data && data !== '{"event":"connected"}') handleEvent(data) }
       es.onerror = () => {
         es.close()
         if (!activeRef.current) return
