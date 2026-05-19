@@ -72,30 +72,30 @@ export default function LeadsPage() {
       <div className="flex items-center gap-2 mb-3 flex-wrap">
         {FILTERS.map(f => (
           <button key={f} onClick={() => handleFilterChange(f)}
-                  className="px-3 py-1.5 rounded-full text-xs font-medium transition-all"
-                  style={{
-                    background: activeFilter === f ? 'var(--surface2)' : 'transparent',
-                    border: '1px solid var(--border)',
-                    color: activeFilter === f ? 'var(--text)' : 'var(--text3)',
-                  }}>
+            className="px-3 py-1.5 rounded-full text-xs font-medium transition-all"
+            style={{
+              background: activeFilter === f ? 'var(--surface2)' : 'transparent',
+              border: '1px solid var(--border)',
+              color: activeFilter === f ? 'var(--text)' : 'var(--text3)',
+            }}>
             {f}
           </button>
         ))}
         <div className="ml-auto flex items-center gap-2">
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs"
-               style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text2)' }}>
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text2)' }}>
             <Search size={11} />
             <input value={search} onChange={handleSearchChange}
-                   placeholder="Search leads..." className="bg-transparent outline-none w-32"
-                   style={{ color: 'var(--text)' }} />
+              placeholder="Search leads..." className="bg-transparent outline-none w-32"
+              style={{ color: 'var(--text)' }} />
           </div>
           <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
-                  style={{ background: 'rgba(79,110,247,0.1)', border: '1px solid rgba(79,110,247,0.3)', color: 'var(--accent2)' }}>
+            style={{ background: 'rgba(79,110,247,0.1)', border: '1px solid rgba(79,110,247,0.3)', color: 'var(--accent2)' }}>
             <Upload size={11} /> Import CSV
           </button>
           <button onClick={() => setShowCreate(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
-                  style={{ background: 'var(--accent)', color: '#fff' }}>
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
+            style={{ background: 'var(--accent)', color: '#fff' }}>
             <Plus size={11} /> New Lead
           </button>
         </div>
@@ -117,9 +117,9 @@ export default function LeadsPage() {
             <tbody>
               {leads.map((lead: any) => (
                 <tr key={lead._id} className="transition-colors"
-                    style={{ borderBottom: '1px solid var(--border)' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = '')}>
+                  style={{ borderBottom: '1px solid var(--border)' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = '')}>
                   <td className="py-2.5 px-3">
                     <div className="font-medium" style={{ color: 'var(--text)' }}>{lead.contact.name}</div>
                     <div style={{ color: 'var(--text3)' }}>{lead.contact.email}</div>
@@ -165,7 +165,13 @@ export default function LeadsPage() {
         )}
         {data && (
           <div className="pt-3">
-            <Pagination page={data.page} pages={data.pages} onPage={setPage} />
+            <Pagination
+              page={data?.page ?? page}
+              pages={data?.pages ?? 1}
+              total={data?.total ?? 0}
+              pageSize={20}
+              onChange={setPage}
+            />
           </div>
         )}
       </Card>
