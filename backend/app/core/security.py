@@ -15,14 +15,22 @@ bearer = HTTPBearer()
 
 # ─── Password ─────────────────────────────────────────────────
 
-def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+import hashlib
+from passlib.context import CryptContext
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def _safe_password(password: str) -> str:
+    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+
+def hash_password(password: str) -> str:
+    return pwd_context.hash(_safe_password(password))
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
-
-
+    try:
+        return pwd_context.verify(_safe_password(plain), hashed)
+    except Exception:
+        return False
 # ─── JWT ──────────────────────────────────────────────────────
 
 def create_access_token(data: dict) -> str:
