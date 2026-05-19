@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/index.py"
+      "destination": "/backend/api/index.py"
     }
   ],
   "headers": [
@@ -17,27 +17,27 @@
       ]
     }
   ],
-"crons": [
-  {
-    "path": "/api/v1/cron/rescore-leads",
-    "schedule": "0 2 * * *"
-  },
-  {
-    "path": "/api/v1/cron/scheduled-reports",
-    "schedule": "0 3 * * *"
-  },
-  {
-    "path": "/api/v1/cron/sla-check",
-    "schedule": "0 4 * * *"
-  },
-  {
-    "path": "/api/v1/cron/churn-scores",
-    "schedule": "0 5 * * *"
-  }
-],
+  "crons": [
+    {
+      "path": "/api/v1/cron/rescore-leads",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/v1/cron/scheduled-reports",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/v1/cron/sla-check",
+      "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/v1/cron/churn-scores",
+      "schedule": "0 5 * * *"
+    }
+  ],
   "regions": ["bom1"],
   "functions": {
-    "api/index.py": {
+    "backend/api/index.py": {
       "maxDuration": 30
     }
   }
