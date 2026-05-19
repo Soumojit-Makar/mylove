@@ -1,48 +1,37 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "50mb"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "api/index.py"
-    }
-  ],
+  "buildCommand": "npm run build",
+  "installCommand": "npm ci",
+  "outputDirectory": "dist",
   "headers": [
     {
-      "source": "/api/(.*)",
+      "source": "/assets/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "no-store"
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://YOUR_BACKEND_URL; img-src 'self' data: https:; font-src 'self' data:"
         }
       ]
     }
   ],
-  "crons": [
+  "rewrites": [
     {
-      "path": "/api/v1/cron/rescore-leads",
-      "schedule": "0 2 * * *"
-    },
-    {
-      "path": "/api/v1/cron/scheduled-reports",
-      "schedule": "0 * * * *"
-    },
-    {
-      "path": "/api/v1/cron/sla-check",
-      "schedule": "*/5 * * * *"
-    },
-    {
-      "path": "/api/v1/cron/churn-scores",
-      "schedule": "0 */6 * * *"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
-  ],
-  "regions": ["bom1"]
+  ]
 }
