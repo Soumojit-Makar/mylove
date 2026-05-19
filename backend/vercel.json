@@ -3,18 +3,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/backend/api/index.py"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store"
-        }
-      ]
+      "destination": "/api/index.py"
     }
   ],
   "crons": [
@@ -34,11 +23,5 @@
       "path": "/api/v1/cron/churn-scores",
       "schedule": "0 5 * * *"
     }
-  ],
-  "regions": ["bom1"],
-  "functions": {
-    "backend/api/index.py": {
-      "maxDuration": 30
-    }
-  }
+  ]
 }
