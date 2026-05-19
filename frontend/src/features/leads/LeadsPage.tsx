@@ -170,11 +170,14 @@ export default function LeadsPage() {
               pages={data?.pages ?? 1}
               total={data?.total ?? 0}
               pageSize={20}
-              onChange={setPage}
+              onChange={setPage} 
+
+
+              
             />
           </div>
         )}
-      </Card>
+      </Card>  
     </div>
   )
 }
