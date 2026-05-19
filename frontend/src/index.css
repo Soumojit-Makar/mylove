@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { @apply border-border; }
+
+  :root {
+    --bg:       #0a0c10;
+    --bg2:      #10141c;
+    --bg3:      #161b26;
+    --surface:  #1a2035;
+    --surface2: #212840;
+    --border:   #2a3350;
+    --border2:  #344060;
+    --text:     #e8eaf2;
+    --text2:    #8892aa;
+    --text3:    #5a6480;
+    --accent:   #4f6ef7;
+    --accent2:  #6b8aff;
+    --green:    #22d695;
+    --amber:    #f5a623;
+    --red:      #f5505a;
+    --purple:   #9b6ef7;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/5 backdrop-blur-sm border border-white/10;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    @apply rounded-xl;
+  }
+  .btn-primary {
+    background: var(--accent);
+    @apply text-white rounded-lg px-4 py-2 text-sm font-medium hover:opacity-90 transition-opacity;
+  }
+  .btn-ghost {
+    @apply text-sm font-medium rounded-lg px-3 py-1.5 transition-colors;
+    color: var(--text2);
+    &:hover { background: var(--surface2); color: var(--text); }
+  }
+  .input {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    @apply rounded-lg px-3 py-2 text-sm outline-none w-full;
+    &:focus { border-color: var(--accent); }
+    &::placeholder { color: var(--text3); }
+  }
+  .badge {
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium;
+  }
+  .badge-green  { background: rgba(34,214,149,0.1);  color: var(--green); }
+  .badge-amber  { background: rgba(245,166,35,0.1);  color: var(--amber); }
+  .badge-red    { background: rgba(245,80,90,0.1);   color: var(--red); }
+  .badge-blue   { background: rgba(79,110,247,0.15); color: var(--accent2); }
+  .badge-purple { background: rgba(155,110,247,0.12);color: var(--purple); }
+  .badge-gray   { background: rgba(90,100,128,0.2);  color: var(--text2); }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}

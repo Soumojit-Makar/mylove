@@ -1,0 +1,57 @@
+version: "3.9"
+
+# Production overrides — use with: docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+services:
+  mongodb:
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    volumes:
+      - mongo_data:/data/db
+      - ./docker/mongod.conf:/etc/mongod.conf:ro
+
+  redis:
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD} --maxmemory 512mb --maxmemory-policy allkeys-lru --appendonly yes
+
+  backend:
+    image: ghcr.io/your-org/nexuscrm-backend:latest
+    restart: always
+    command: gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+    environment:
+      - APP_ENV=production
+      - DEBUG=false
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+
+  celery_worker:
+    image: ghcr.io/your-org/nexuscrm-backend:latest
+    restart: always
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+  frontend:
+    image: ghcr.io/your-org/nexuscrm-frontend:latest
+    restart: always
+
+  nginx:
+    restart: always
+    volumes:
+      - ./docker/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/ssl:/etc/nginx/ssl:ro
+      - certbot_certs:/etc/letsencrypt:ro
+
+volumes:
+  mongo_data:
+  redis_data:
+  media_data:
+  certbot_certs:

@@ -1,0 +1,84 @@
+{
+  "version": 2,
+
+  "builds": [
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist",
+        "buildCommand": "npm run build",
+        "installCommand": "npm ci"
+      }
+    },
+    {
+      "src": "backend/api/index.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "50mb"
+      }
+    }
+  ],
+
+  "routes": [
+    { "src": "/api/(.*)", "dest": "backend/api/index.py" },
+    { "src": "/assets/(.*)", "dest": "/frontend/dist/assets/$1" },
+    { "src": "/(.*)",      "dest": "/frontend/dist/index.html" }
+  ],
+
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options",  "value": "nosniff" },
+        { "key": "X-Frame-Options",         "value": "DENY" },
+        { "key": "X-XSS-Protection",        "value": "1; mode=block" },
+        { "key": "Referrer-Policy",         "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy",      "value": "camera=(), microphone=(), geolocation=()" },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data: https:; font-src 'self' data:"
+        }
+      ]
+    }
+  ],
+
+  "crons": [
+    {
+      "path": "/api/v1/cron/rescore-leads",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/v1/cron/scheduled-reports",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/v1/cron/sla-check",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/v1/cron/churn-scores",
+      "schedule": "0 */6 * * *"
+    }
+  ],
+
+  "regions": ["bom1", "sin1", "fra1", "iad1"],
+
+  "functions": {
+    "backend/api/index.py": {
+      "maxDuration": 30
+    }
+  }
+}
