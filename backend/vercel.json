@@ -1,0 +1,53 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "50mb"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "api/index.py"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/v1/cron/rescore-leads",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/v1/cron/scheduled-reports",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/v1/cron/sla-check",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/v1/cron/churn-scores",
+      "schedule": "0 */6 * * *"
+    }
+  ],
+  "regions": ["bom1"],
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 30
+    }
+  }
+}
