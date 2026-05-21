@@ -95,7 +95,7 @@ export default function DealsPage() {
 
       {/* View toggle */}
       <div className="flex items-center justify-between mb-3">
-        <SectionHeader title="Kanban Pipeline View" />
+        <SectionHeader title={view === 'kanban' ? 'Kanban Pipeline View' : 'List Pipeline View'} />
         <div className="flex gap-1 p-1 rounded-lg" style={{ background: 'var(--bg3)' }}>
           {(['kanban', 'list'] as const).map(v => (
             <button key={v} onClick={() => setView(v)}
@@ -109,42 +109,100 @@ export default function DealsPage() {
       </div>
 
       {/* Kanban */}
-      <div className="grid gap-3 mb-5" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
-        {STAGES.map(stage => (
-          <div key={stage} className="rounded-xl p-3" style={{ background: 'var(--bg3)' }}>
-            <div className="flex items-center justify-between mb-3 pb-2" style={{ borderBottom: '1px solid var(--border)' }}>
-              <span className="text-xs font-medium" style={{ color: 'var(--text2)' }}>{stage}</span>
-              <span className="text-xs px-1.5 py-0.5 rounded-md" style={{ background: 'var(--surface2)', color: 'var(--text3)' }}>
-                {deals[stage]?.length || 0}
-              </span>
-            </div>
-            {(deals[stage] || []).map(deal => (
-              <div key={deal.id} className="rounded-lg p-2.5 mb-2 cursor-pointer transition-all hover:-translate-y-px"
-                style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-                <div className="text-xs font-medium mb-1.5" style={{ color: 'var(--text)' }}>{deal.name}</div>
-                <div className="flex items-center gap-1.5 mb-2">
-                  <span className="badge badge-gray text-xs">{deal.segment}</span>
-                  <span className="text-xs font-medium" style={{ color: 'var(--green)' }}>{formatCurrency(deal.value)}</span>
-                </div>
-                <div className="flex items-center justify-between text-xs mb-1.5" style={{ color: 'var(--text3)' }}>
-                  <span>{deal.days > 0 ? `Day ${deal.days}` : 'New'}</span>
-                  <span>{deal.prob}%</span>
-                </div>
-                <div className="h-1 rounded-full" style={{ background: 'var(--bg4, #1e2535)' }}>
-                  <div className="h-full rounded-full" style={{ width: `${deal.prob}%`, background: 'var(--accent)' }} />
-                </div>
+      {view === 'kanban' && (
+        <div className="grid gap-3 mb-5" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
+          {STAGES.map(stage => (
+            <div key={stage} className="rounded-xl p-3" style={{ background: 'var(--bg3)' }}>
+              <div className="flex items-center justify-between mb-3 pb-2" style={{ borderBottom: '1px solid var(--border)' }}>
+                <span className="text-xs font-medium" style={{ color: 'var(--text2)' }}>{stage}</span>
+                <span className="text-xs px-1.5 py-0.5 rounded-md" style={{ background: 'var(--surface2)', color: 'var(--text3)' }}>
+                  {deals[stage]?.length || 0}
+                </span>
               </div>
-            ))}
-            <button onClick={() => openAddDeal(stage)}
-              className="w-full text-center py-2 text-xs transition-colors rounded-lg"
-              style={{ color: 'var(--text3)' }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text3)')}>
-              + Add deal
-            </button>
-          </div>
-        ))}
-      </div>
+              {(deals[stage] || []).map(deal => (
+                <div key={deal.id} className="rounded-lg p-2.5 mb-2 cursor-pointer transition-all hover:-translate-y-px"
+                  style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+                  <div className="text-xs font-medium mb-1.5" style={{ color: 'var(--text)' }}>{deal.name}</div>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <span className="badge badge-gray text-xs">{deal.segment}</span>
+                    <span className="text-xs font-medium" style={{ color: 'var(--green)' }}>{formatCurrency(deal.value)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs mb-1.5" style={{ color: 'var(--text3)' }}>
+                    <span>{deal.days > 0 ? `Day ${deal.days}` : 'New'}</span>
+                    <span>{deal.prob}%</span>
+                  </div>
+                  <div className="h-1 rounded-full" style={{ background: 'var(--bg4, #1e2535)' }}>
+                    <div className="h-full rounded-full" style={{ width: `${deal.prob}%`, background: 'var(--accent)' }} />
+                  </div>
+                </div>
+              ))}
+              <button onClick={() => openAddDeal(stage)}
+                className="w-full text-center py-2 text-xs transition-colors rounded-lg"
+                style={{ color: 'var(--text3)' }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text3)')}>
+                + Add deal
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* List */}
+      {view === 'list' && (
+        <div className="rounded-xl mb-5 overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+          <table className="w-full text-xs">
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg3)' }}>
+                {['Deal', 'Company', 'Stage', 'Segment', 'Value', 'Probability', 'Age', 'Action'].map(h => (
+                  <th key={h} className="text-left py-2.5 px-3 font-medium" style={{ color: 'var(--text3)' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {STAGES.flatMap(stage =>
+                (deals[stage] || []).map(deal => (
+                  <tr key={deal.id} className="transition-colors"
+                    style={{ borderBottom: '1px solid var(--border)' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg3)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = '')}>
+                    <td className="py-2.5 px-3 font-medium" style={{ color: 'var(--text)' }}>{deal.name}</td>
+                    <td className="py-2.5 px-3" style={{ color: 'var(--text2)' }}>{deal.company}</td>
+                    <td className="py-2.5 px-3">
+                      <span className="badge badge-gray">{stage}</span>
+                    </td>
+                    <td className="py-2.5 px-3">
+                      <span className="badge badge-gray">{deal.segment}</span>
+                    </td>
+                    <td className="py-2.5 px-3 font-medium" style={{ color: 'var(--green)' }}>{formatCurrency(deal.value)}</td>
+                    <td className="py-2.5 px-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 h-1 rounded-full" style={{ background: 'var(--bg4, #1e2535)' }}>
+                          <div className="h-full rounded-full" style={{ width: `${deal.prob}%`, background: 'var(--accent)' }} />
+                        </div>
+                        <span style={{ color: 'var(--text2)' }}>{deal.prob}%</span>
+                      </div>
+                    </td>
+                    <td className="py-2.5 px-3" style={{ color: 'var(--text3)' }}>
+                      {deal.days > 0 ? `Day ${deal.days}` : 'New'}
+                    </td>
+                    <td className="py-2.5 px-3">
+                      <button onClick={() => openAddDeal(stage)}
+                        className="px-2 py-1 rounded text-xs font-medium"
+                        style={{ background: 'rgba(79,110,247,0.1)', color: 'var(--accent2)', border: '1px solid rgba(79,110,247,0.2)' }}>
+                        + Add
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+          {STAGES.flatMap(s => deals[s] || []).length === 0 && (
+            <div className="py-12 text-center text-xs" style={{ color: 'var(--text3)' }}>No deals in pipeline</div>
+          )}
+        </div>
+      )}
 
       {/* Forecast chart */}
       <Card>

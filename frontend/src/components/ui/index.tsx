@@ -152,9 +152,9 @@ export function Modal({ open, onClose, title, children, width = 480 }: {
          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
          onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="rounded-2xl shadow-2xl animate-fade-in"
-           style={{ width, maxWidth: '95vw', background: 'var(--bg2)', border: '1px solid var(--border)' }}>
-        <div className="flex items-center justify-between px-5 py-4"
-             style={{ borderBottom: '1px solid var(--border)' }}>
+           style={{ width, maxWidth: '95vw', maxHeight: '90vh', overflowY: 'auto', background: 'var(--bg2)', border: '1px solid var(--border)' }}>
+        <div className="flex items-center justify-between px-5 py-4 sticky top-0 z-10"
+             style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg2)' }}>
           <div className="font-semibold" style={{ color: 'var(--text)' }}>{title}</div>
           <button onClick={onClose} className="text-lg leading-none hover:opacity-70"
                   style={{ color: 'var(--text3)' }}>✕</button>
@@ -249,29 +249,74 @@ export function Table({ headers, rows, onRowClick }: {
 export function Pagination({ page, pages, total, pageSize, onChange }: {
   page: number; pages: number; total: number; pageSize: number; onChange: (p: number) => void
 }) {
-  const from = (page - 1) * pageSize + 1
+  const from = Math.min((page - 1) * pageSize + 1, total)
   const to = Math.min(page * pageSize, total)
+
+  // Build page numbers: show up to 5 around current page
+  const getPageNums = () => {
+    const nums: number[] = []
+    const around = 2
+    for (let i = Math.max(1, page - around); i <= Math.min(pages, page + around); i++) {
+      nums.push(i)
+    }
+    return nums
+  }
+  const pageNums = getPageNums()
+
   return (
-    <div className="flex items-center justify-between mt-4 text-xs" style={{ color: 'var(--text3)' }}>
-      <span>Showing {from}–{to} of {total}</span>
-      <div className="flex gap-1">
-        {['←', ...Array.from({ length: Math.min(pages, 5) }, (_, i) => String(i + 1)), '→'].map((p, i) => {
-          const pg = p === '←' ? page - 1 : p === '→' ? page + 1 : Number(p)
-          const isActive = p === String(page)
-          const disabled = (p === '←' && page <= 1) || (p === '→' && page >= pages)
-          return (
-            <button key={i} disabled={disabled}
-                    onClick={() => !disabled && onChange(pg)}
-                    className="px-2 py-1 rounded text-xs font-medium transition-colors"
-                    style={{
-                      background: isActive ? 'var(--accent)' : 'var(--surface2)',
-                      color: isActive ? '#fff' : 'var(--text2)',
-                      opacity: disabled ? 0.3 : 1,
-                    }}>
-              {p}
-            </button>
-          )
-        })}
+    <div className="flex items-center justify-between text-xs" style={{ color: 'var(--text3)' }}>
+      <span>Showing {from}–{to} of {total.toLocaleString()}</span>
+      <div className="flex gap-1 items-center">
+        <button
+          disabled={page <= 1}
+          onClick={() => onChange(page - 1)}
+          className="px-2 py-1 rounded text-xs font-medium transition-colors"
+          style={{
+            background: 'var(--surface2)',
+            color: page <= 1 ? 'var(--text3)' : 'var(--text2)',
+            opacity: page <= 1 ? 0.4 : 1,
+            cursor: page <= 1 ? 'not-allowed' : 'pointer',
+          }}>
+          ←
+        </button>
+        {pageNums[0] > 1 && (
+          <>
+            <button onClick={() => onChange(1)}
+              className="px-2 py-1 rounded text-xs font-medium"
+              style={{ background: 'var(--surface2)', color: 'var(--text2)' }}>1</button>
+            {pageNums[0] > 2 && <span className="px-1" style={{ color: 'var(--text3)' }}>…</span>}
+          </>
+        )}
+        {pageNums.map(p => (
+          <button key={p} onClick={() => onChange(p)}
+            className="px-2 py-1 rounded text-xs font-medium transition-colors"
+            style={{
+              background: p === page ? 'var(--accent)' : 'var(--surface2)',
+              color: p === page ? '#fff' : 'var(--text2)',
+            }}>
+            {p}
+          </button>
+        ))}
+        {pageNums[pageNums.length - 1] < pages && (
+          <>
+            {pageNums[pageNums.length - 1] < pages - 1 && <span className="px-1" style={{ color: 'var(--text3)' }}>…</span>}
+            <button onClick={() => onChange(pages)}
+              className="px-2 py-1 rounded text-xs font-medium"
+              style={{ background: 'var(--surface2)', color: 'var(--text2)' }}>{pages}</button>
+          </>
+        )}
+        <button
+          disabled={page >= pages}
+          onClick={() => onChange(page + 1)}
+          className="px-2 py-1 rounded text-xs font-medium transition-colors"
+          style={{
+            background: 'var(--surface2)',
+            color: page >= pages ? 'var(--text3)' : 'var(--text2)',
+            opacity: page >= pages ? 0.4 : 1,
+            cursor: page >= pages ? 'not-allowed' : 'pointer',
+          }}>
+          →
+        </button>
       </div>
     </div>
   )
