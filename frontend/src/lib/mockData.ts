@@ -1,6 +1,4 @@
 // ─── Mock data store — replaces backend when API is unavailable ───────────────
-// All mutations update this in-memory store so the UI stays consistent.
-
 export interface Lead {
   _id: string
   contact: { name: string; email: string; company: string; title: string }
@@ -35,16 +33,59 @@ export interface Ticket {
 
 const now = new Date().toISOString()
 
-export const mockLeads: Lead[] = [
-  { _id: '1', contact: { name: 'Jordan Kim', email: 'jordan@techco.io', company: 'TechCo Inc', title: 'CTO' }, status: 'sql', score: 87, source: 'Organic Search', value: 45000, assigned_to: 'SA', created_at: now },
-  { _id: '2', contact: { name: 'Maria Santos', email: 'maria@globex.com', company: 'Globex Corp', title: 'VP Sales' }, status: 'mql', score: 72, source: 'LinkedIn Ad', value: 18000, assigned_to: 'MR', created_at: now },
-  { _id: '3', contact: { name: 'Alex Chen', email: 'alex@startupxyz.io', company: 'StartupXYZ', title: 'Founder' }, status: 'mql', score: 55, source: 'Webinar', value: 8000, assigned_to: 'LC', created_at: now },
-  { _id: '4', contact: { name: 'Priya Nair', email: 'priya@megacorp.com', company: 'MegaCorp Ltd', title: 'CIO' }, status: 'sql', score: 91, source: 'Referral', value: 120000, assigned_to: 'PK', created_at: now },
-  { _id: '5', contact: { name: 'Tom Williams', email: 'tom@acme.solutions', company: 'Acme Solutions', title: 'Manager' }, status: 'new', score: 38, source: 'Cold Email', value: 22000, assigned_to: 'TW', created_at: now },
-  { _id: '6', contact: { name: 'Lisa Park', email: 'lisa@dataflow.ai', company: 'DataFlow AI', title: 'CEO' }, status: 'mql', score: 68, source: 'Demo Request', value: 75000, assigned_to: 'SA', created_at: now },
-  { _id: '7', contact: { name: 'Marcus Brown', email: 'marcus@retailtech.co', company: 'RetailTech', title: 'Director' }, status: 'new', score: 29, source: 'Ad Click', value: 5000, assigned_to: null, created_at: now },
-  { _id: '8', contact: { name: 'Yuki Tanaka', email: 'yuki@enterprise.jp', company: 'Enterprise JP', title: 'SVP' }, status: 'sql', score: 82, source: 'Partner', value: 95000, assigned_to: 'MR', created_at: now },
-]
+const SOURCES = ['Organic Search', 'LinkedIn Ad', 'Referral', 'Webinar', 'Demo Request', 'Cold Email', 'Partner', 'Ad Click', 'Manual']
+const STATUSES: Lead['status'][] = ['new', 'mql', 'sql', 'disqualified']
+const COMPANIES = ['TechCo Inc', 'Globex Corp', 'MegaCorp Ltd', 'Acme Solutions', 'DataFlow AI', 'RetailTech', 'Enterprise JP', 'StartupXYZ', 'FinServ Co', 'CloudOps']
+const NAMES = ['Jordan Kim','Maria Santos','Alex Chen','Priya Nair','Tom Williams','Lisa Park','Marcus Brown','Yuki Tanaka','Sara Patel','David Lee','Emma Wilson','Noah Garcia','Olivia Martinez','Liam Johnson','Ava Robinson']
+
+// Generate 60 leads for proper pagination demo
+function genLeads(): Lead[] {
+  const leads: Lead[] = []
+  NAMES.concat(NAMES.concat(NAMES.concat(NAMES))).slice(0, 60).forEach((name, i) => {
+    leads.push({
+      _id: String(i + 1),
+      contact: {
+        name: `${name} ${i > 14 ? i : ''}`.trim(),
+        email: `${name.toLowerCase().replace(/\s/g,'.')}${i > 14 ? i : ''}@${COMPANIES[i % COMPANIES.length].toLowerCase().replace(/\s/g,'')}.io`,
+        company: COMPANIES[i % COMPANIES.length],
+        title: ['CTO','VP Sales','Founder','CIO','Manager','Director','CEO','SVP'][i % 8],
+      },
+      status: STATUSES[i % 4],
+      score: 20 + ((i * 17 + 31) % 75),
+      source: SOURCES[i % SOURCES.length],
+      value: (5 + ((i * 13 + 7) % 100)) * 1000,
+      assigned_to: ['SA','MR','LC','PK','TW'][i % 5],
+      created_at: now,
+    })
+  })
+  return leads
+}
+
+// Generate 50 tickets
+function genTickets(): Ticket[] {
+  const subjects = [
+    'Cannot access reporting module', 'API rate limit exceeded', 'CSV import fails silently',
+    'Password reset email not arriving', 'Dashboard charts not loading', 'Need bulk delete for contacts',
+    'Integration with Salesforce broken', 'Slow query on deals list', 'Export PDF hangs',
+    'Mobile app crashes on login', 'Webhook not firing on deal close', 'Email template not saving',
+    '2FA setup failing for SSO users', 'Audit log missing entries', 'Pagination broken on tickets',
+  ]
+  const customers = COMPANIES
+  const statuses: Ticket['status'][] = ['open', 'pending', 'resolved', 'closed']
+  const priorities: Ticket['priority'][] = ['low', 'medium', 'high', 'critical']
+  return Array.from({ length: 50 }, (_, i) => ({
+    _id: `t${i + 1}`,
+    subject: subjects[i % subjects.length] + (i >= subjects.length ? ` #${i + 1}` : ''),
+    customer: customers[i % customers.length],
+    status: statuses[i % 4],
+    priority: priorities[i % 4],
+    created_at: now,
+    sla_breached: i % 7 === 2,
+  }))
+}
+
+export const mockLeads: Lead[] = genLeads()
+export const mockTickets: Ticket[] = genTickets()
 
 export const mockDeals: Deal[] = [
   { _id: 'd1', name: 'Acme Corp Enterprise License', company: 'Acme Corp', stage: 'Proposal', value: 120000, probability: 75, owner: 'SA', close_date: '2025-03-31' },
@@ -54,37 +95,51 @@ export const mockDeals: Deal[] = [
   { _id: 'd5', name: 'RetailTech Starter Pack', company: 'RetailTech', stage: 'MQL', value: 15000, probability: 15, owner: 'TW', close_date: '2025-07-15' },
 ]
 
-export const mockTickets: Ticket[] = [
-  { _id: 't1', subject: 'Cannot access reporting module', customer: 'Acme Corp', status: 'open', priority: 'high', created_at: now, sla_breached: false },
-  { _id: 't2', subject: 'API rate limit exceeded', customer: 'TechCo Inc', status: 'pending', priority: 'critical', created_at: now, sla_breached: true },
-  { _id: 't3', subject: 'CSV import fails silently', customer: 'Globex Corp', status: 'open', priority: 'medium', created_at: now, sla_breached: false },
-  { _id: 't4', subject: 'Password reset email not arriving', customer: 'StartupXYZ', status: 'resolved', priority: 'low', created_at: now, sla_breached: false },
-  { _id: 't5', subject: 'Dashboard charts not loading', customer: 'DataFlow AI', status: 'open', priority: 'high', created_at: now, sla_breached: true },
-  { _id: 't6', subject: 'Need bulk delete for contacts', customer: 'RetailTech', status: 'open', priority: 'low', created_at: now, sla_breached: false },
-  { _id: 't7', subject: 'Integration with Salesforce broken', customer: 'MegaCorp Ltd', status: 'pending', priority: 'critical', created_at: now, sla_breached: false },
-]
-
-// Mutable store — mutations update this directly
+// Mutable store
 export const store = {
   leads: [...mockLeads],
-  deals: [...mockDeals],
   tickets: [...mockTickets],
-  nextId: 100,
+  deals: [...mockDeals],
+  nextId: 200,
 }
 
 function uid() { return String(++store.nextId) }
 
-// ─── Mock API handlers ────────────────────────────────────────────────────────
-type MockHandler = (url: string, method: string, data?: any) => any
+// ─── Pagination helper ────────────────────────────────────────
+function paginate<T>(items: T[], params: Record<string, string>, pageSize = 20) {
+  const page = Math.max(1, parseInt(params.page || '1', 10))
+  const search = (params.search || '').toLowerCase()
+  const status = params.status
 
-export const mockApi: MockHandler = (url, method, data) => {
+  let filtered = items
+  if (search) {
+    filtered = filtered.filter(item => JSON.stringify(item).toLowerCase().includes(search))
+  }
+  if (status) {
+    filtered = filtered.filter((item: any) =>
+      item.status === status || item.contact?.status === status
+    )
+  }
+
+  const total = filtered.length
+  const pages = Math.max(1, Math.ceil(total / pageSize))
+  const safePage = Math.min(page, pages)
+  const start = (safePage - 1) * pageSize
+  return {
+    items: filtered.slice(start, start + pageSize),
+    total,
+    page: safePage,
+    pages,
+  }
+}
+
+// ─── Mock API handlers ────────────────────────────────────────
+type MockHandler = (url: string, method: string, data?: any, params?: Record<string, string>) => any
+
+export const mockApi: MockHandler = (url, method, data, params = {}) => {
   // Auth
   if (url.includes('/auth/login') && method === 'POST') {
-    return {
-      access_token: 'mock-access-token',
-      refresh_token: 'mock-refresh-token',
-      token_type: 'bearer',
-    }
+    return { access_token: 'mock-access-token', refresh_token: 'mock-refresh-token', token_type: 'bearer' }
   }
   if (url.includes('/auth/me')) {
     return { id: 'u1', name: 'Sarah Adams', email: 'sarah@nexuscrm.io', role: 'sales_manager', tenant_id: 'tenant1' }
@@ -96,7 +151,7 @@ export const mockApi: MockHandler = (url, method, data) => {
 
   // Leads
   if (url.match(/\/leads$/) && method === 'GET') {
-    return { items: store.leads, total: store.leads.length, page: 1, pages: 1 }
+    return paginate(store.leads, params, 20)
   }
   if (url.match(/\/leads$/) && method === 'POST') {
     const lead: Lead = {
@@ -112,9 +167,7 @@ export const mockApi: MockHandler = (url, method, data) => {
     store.leads.unshift(lead)
     return lead
   }
-  if (url.match(/\/leads\/\w+\/score/) && method === 'POST') {
-    return { status: 'queued' }
-  }
+  if (url.match(/\/leads\/\w+\/score/) && method === 'POST') return { status: 'queued' }
   if (url.match(/\/leads\/(\w+)$/) && method === 'DELETE') {
     const id = url.split('/').pop()
     store.leads = store.leads.filter(l => l._id !== id)
@@ -129,7 +182,7 @@ export const mockApi: MockHandler = (url, method, data) => {
 
   // Deals
   if (url.match(/\/deals$/) && method === 'GET') {
-    return { items: store.deals, total: store.deals.length, page: 1, pages: 1 }
+    return paginate(store.deals, params, 20)
   }
   if (url.match(/\/deals$/) && method === 'POST') {
     const deal: Deal = { _id: uid(), ...data, probability: data.probability || 20 }
@@ -153,7 +206,7 @@ export const mockApi: MockHandler = (url, method, data) => {
 
   // Tickets
   if (url.match(/\/tickets$/) && method === 'GET') {
-    return { items: store.tickets, total: store.tickets.length, page: 1, pages: 1 }
+    return paginate(store.tickets, params, 15)
   }
   if (url.match(/\/tickets$/) && method === 'POST') {
     const ticket: Ticket = {
@@ -175,6 +228,59 @@ export const mockApi: MockHandler = (url, method, data) => {
     return store.tickets[idx] || {}
   }
 
+  // Contacts (derived from leads)
+  if (url.includes('/contacts') && method === 'GET') {
+    const contacts = store.leads.map(l => ({
+      _id: l._id, ...l.contact, tags: [], status: l.status,
+    }))
+    return paginate(contacts, params, 20)
+  }
+  if (url.includes('/contacts') && method === 'POST') {
+    const lead: Lead = {
+      _id: uid(),
+      contact: { name: data.name, email: data.email, company: data.company, title: data.title || '' },
+      status: 'new', score: 50, source: 'Manual', value: 0, assigned_to: null,
+      created_at: new Date().toISOString(),
+    }
+    store.leads.unshift(lead)
+    return { _id: lead._id, ...lead.contact, tags: [] }
+  }
+
+  // Accounts
+  if (url.includes('/accounts') && method === 'GET') {
+    const accounts = [
+      { _id: 'a1', name: 'Acme Corp',         plan: 'Enterprise', mrr: 12400, health: 88, nps: 'Promoter',  renewal: 'Dec 2025', csm: 'Sarah L.',  seats: 240 },
+      { _id: 'a2', name: 'MegaCorp Ltd',       plan: 'Enterprise', mrr: 24800, health: 92, nps: 'Promoter',  renewal: 'Jan 2026', csm: 'James K.',  seats: 580 },
+      { _id: 'a3', name: 'Globex Industries',  plan: 'Growth',     mrr: 4200,  health: 28, nps: 'Detractor', renewal: 'Mar 2026', csm: 'Priya N.',  seats: 45  },
+      { _id: 'a4', name: 'TechCo Inc',         plan: 'Pro',        mrr: 2800,  health: 71, nps: 'Passive',   renewal: 'Feb 2026', csm: 'David M.',  seats: 30  },
+      { _id: 'a5', name: 'DataFlow AI',        plan: 'Enterprise', mrr: 8400,  health: 84, nps: 'Promoter',  renewal: 'Nov 2025', csm: 'Yuki T.',   seats: 120 },
+      { _id: 'a6', name: 'RetailTech',         plan: 'Starter',    mrr: 990,   health: 55, nps: 'Passive',   renewal: 'Apr 2026', csm: 'Marcus B.', seats: 12  },
+      { _id: 'a7', name: 'CloudOps',           plan: 'Pro',        mrr: 3200,  health: 78, nps: 'Promoter',  renewal: 'May 2026', csm: 'Emma W.',   seats: 50  },
+      { _id: 'a8', name: 'FinServ Co',         plan: 'Enterprise', mrr: 18600, health: 91, nps: 'Promoter',  renewal: 'Jun 2026', csm: 'Noah G.',   seats: 310 },
+      { _id: 'a9', name: 'StartupXYZ',         plan: 'Starter',    mrr: 490,   health: 40, nps: 'Detractor', renewal: 'Jul 2026', csm: 'Olivia M.', seats: 8   },
+      { _id:'a10', name: 'Enterprise JP',      plan: 'Enterprise', mrr: 21000, health: 95, nps: 'Promoter',  renewal: 'Aug 2026', csm: 'Liam J.',   seats: 420 },
+    ]
+    return paginate(accounts, params, 8)
+  }
+
+  // Campaigns
+  if (url.includes('/campaigns') && method === 'GET') {
+    return { items: [
+      { _id: 'c1', name: 'Q4 Enterprise Push', status: 'active', type: 'email', sent: 4200, opens: 1890, clicks: 342, leads: 28 },
+      { _id: 'c2', name: 'Product Launch Webinar', status: 'draft', type: 'webinar', sent: 0, opens: 0, clicks: 0, leads: 0 },
+      { _id: 'c3', name: 'Mid-Market Nurture', status: 'completed', type: 'email', sent: 8600, opens: 3100, clicks: 780, leads: 65 },
+    ], total: 3, page: 1, pages: 1 }
+  }
+
+  // Workflows
+  if (url.includes('/workflows') && method === 'GET') {
+    return { items: [
+      { _id: 'w1', name: 'New Lead Onboarding', status: 'active', trigger: 'lead.created', runs: 1842, last_run: '2m ago' },
+      { _id: 'w2', name: 'Deal Stage Notifications', status: 'active', trigger: 'deal.stage_changed', runs: 423, last_run: '18m ago' },
+      { _id: 'w3', name: 'Churn Risk Alert', status: 'inactive', trigger: 'account.churn_risk', runs: 87, last_run: '3d ago' },
+    ], total: 3, page: 1, pages: 1 }
+  }
+
   // Analytics
   if (url.includes('/analytics/overview')) {
     return { total_revenue: 4_820_000, leads_total: 1284, win_rate: 34.7, avg_deal: 18400 }
@@ -187,75 +293,24 @@ export const mockApi: MockHandler = (url, method, data) => {
   if (url.includes('/analytics/attribution')) return { data: [] }
 
   // Notifications
-  if (url.includes('/notifications') && method === 'GET') {
-    return { items: [], total: 0 }
-  }
+  if (url.includes('/notifications') && method === 'GET') return { items: [], total: 0 }
   if (url.includes('/notifications') && method === 'PATCH') return {}
 
-  // Contacts
-  if (url.includes('/contacts') && method === 'GET') {
-    return { items: store.leads.map(l => ({ _id: l._id, ...l.contact, status: l.status })), total: store.leads.length, page: 1, pages: 1 }
-  }
-
-  // Accounts
-  if (url.includes('/accounts') && method === 'GET') {
-    return {
-      items: [
-        { _id: 'a1', name: 'Acme Corp', industry: 'Technology', employees: 1200, arr: 240000, health: 87, churn_risk: false },
-        { _id: 'a2', name: 'Globex Corp', industry: 'Finance', employees: 3400, arr: 180000, health: 42, churn_risk: true },
-        { _id: 'a3', name: 'MegaCorp Ltd', industry: 'Healthcare', employees: 8900, arr: 480000, health: 72, churn_risk: false },
-      ],
-      total: 3, page: 1, pages: 1,
-    }
-  }
-
-  // Campaigns
-  if (url.includes('/campaigns') && method === 'GET') {
-    return {
-      items: [
-        { _id: 'c1', name: 'Q4 Enterprise Push', status: 'active', type: 'email', sent: 4200, opens: 1890, clicks: 342, leads: 28 },
-        { _id: 'c2', name: 'Product Launch Webinar', status: 'draft', type: 'webinar', sent: 0, opens: 0, clicks: 0, leads: 0 },
-        { _id: 'c3', name: 'Mid-Market Nurture', status: 'completed', type: 'email', sent: 8600, opens: 3100, clicks: 780, leads: 65 },
-      ],
-      total: 3, page: 1, pages: 1,
-    }
-  }
-
-  // Workflows
-  if (url.includes('/workflows') && method === 'GET') {
-    return {
-      items: [
-        { _id: 'w1', name: 'New Lead Onboarding', status: 'active', trigger: 'lead.created', runs: 1842, last_run: '2m ago' },
-        { _id: 'w2', name: 'Deal Stage Notifications', status: 'active', trigger: 'deal.stage_changed', runs: 423, last_run: '18m ago' },
-        { _id: 'w3', name: 'Churn Risk Alert', status: 'inactive', trigger: 'account.churn_risk', runs: 87, last_run: '3d ago' },
-      ],
-      total: 3, page: 1, pages: 1,
-    }
-  }
-
   // Reports
-  if (url.includes('/reports') && method === 'GET') {
-    return { items: [], total: 0 }
-  }
+  if (url.includes('/reports') && method === 'GET') return { items: [], total: 0 }
   if (url.includes('/reports/generate')) return { status: 'queued' }
 
   // HR
   if (url.includes('/hr/staff')) {
-    return {
-      items: [
-        { _id: 'h1', name: 'Sarah Adams', role: 'Sales Manager', deals: 12, revenue: 480000, quota_pct: 112 },
-        { _id: 'h2', name: 'Marcus Reid', role: 'AE', deals: 8, revenue: 310000, quota_pct: 88 },
-        { _id: 'h3', name: 'Lena Chen', role: 'SDR', deals: 3, revenue: 95000, quota_pct: 95 },
-      ]
-    }
+    return { items: [
+      { _id: 'h1', name: 'Sarah Adams', role: 'Sales Manager', deals: 12, revenue: 480000, quota_pct: 112 },
+      { _id: 'h2', name: 'Marcus Reid', role: 'AE', deals: 8, revenue: 310000, quota_pct: 88 },
+      { _id: 'h3', name: 'Lena Chen', role: 'SDR', deals: 3, revenue: 95000, quota_pct: 95 },
+    ]}
   }
   if (url.includes('/hr/kpis')) {
     return { team_quota_attainment: 94, avg_ramp: 68, attrition: 8 }
   }
 
-  // Stream — never reaches here, handled separately
-  if (url.includes('/stream')) return {}
-
-  // Default
   return {}
 }
