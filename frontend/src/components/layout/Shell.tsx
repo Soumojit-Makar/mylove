@@ -20,7 +20,7 @@ const NAV = [
   { to: '/accounts',   label: 'Accounts',      icon: Building2 },
   { section: 'Automation' },
   { to: '/campaigns',  label: 'Marketing',     icon: Megaphone },
-  { to: '/workflow',   label: 'Workflows',     icon: GitBranch },
+  { to: '/workflows',  label: 'Workflows',     icon: GitBranch },
   { to: '/tickets',    label: 'Service Desk',  icon: HeadphonesIcon,  badge: '7' },
   { section: 'Intelligence' },
   { to: '/analytics',  label: 'Analytics & AI',icon: BarChart3 },
